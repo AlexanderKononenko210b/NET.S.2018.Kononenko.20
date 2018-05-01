@@ -159,7 +159,7 @@ namespace XML.Services
                         .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!hostAndUrlPath.Any())
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is apsent, time: {DateTime.Now})");
+                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
 
                 if (hostAndUrlPath[0].IndexOf('.') == -1)
                     return (false, null, null, $"{input} (part <host>is not valid, time: {DateTime.Now})");
@@ -172,10 +172,10 @@ namespace XML.Services
                         .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!hostAndUrlPath.Any())
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is apsent, time: {DateTime.Now})");
+                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
 
                 if (hostAndUrlPath[0].IndexOf('.') == -1)
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is apsent, time: {DateTime.Now})");
+                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
 
                 return (true, hostAndUrlPath, null, $"Input string is valid without params, time: {DateTime.Now}");
             }
