@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using XML.Entity;
 using XML.Enum;
 
 namespace XML.Interfaces
 {
-    public interface IUrlService<T> where T : UrlAddress
+    public interface IService<T> where T : class
     {
-        List<UrlAddress> UrlAddresses { get; }
+        void ReadTxt(IParser<T> parser);
 
-        void Read(TypeRead type);
+        void ReadXml();
 
-        void Write();
+        void WriteXml();
     }
 }

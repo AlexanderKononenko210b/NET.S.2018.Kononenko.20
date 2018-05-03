@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using XML.Entity;
 using XML.Enum;
 using XML.Interfaces;
@@ -14,22 +15,24 @@ namespace XML.Test
     {
         static void Main(string[] args)
         {
-            IUrlService<UrlAddress> service = new UrlService(new Logger());
+            var service = new UrlService(new Logger());
 
-            service.Read(TypeRead.Text);
+            var parser = new UrlAddressParser();
+
+            service.ReadTxt(parser);
 
             Console.WriteLine("Read at txt file");
 
-            foreach (UrlAddress item in service.UrlAddresses)
+            foreach (UrlAddress item in service)
             {
                 Console.WriteLine(item);
             }
 
-            service.Write();
+            service.WriteXml();
 
             Console.WriteLine("Read at xml file");
 
-            foreach (UrlAddress item in service.UrlAddresses)
+            foreach (UrlAddress item in service)
             {
                 Console.WriteLine(item);
             }

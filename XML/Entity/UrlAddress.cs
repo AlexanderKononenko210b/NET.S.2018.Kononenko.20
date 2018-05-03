@@ -18,27 +18,6 @@ namespace XML.Entity
 
         public UrlAddress() { }
 
-        public UrlAddress(string hostName)
-        {
-            this.HostName = hostName;
-        }
-
-        public UrlAddress(string hostName, string[] urlPaths)
-            : this(hostName)
-        {
-            this.Uri = new List<UrlSegment> ();
-            foreach(string item in urlPaths)
-                this.Uri.Add(new UrlSegment(item));
-        }
-
-        public UrlAddress(string hostName, string[] urlPaths, string[] parametres)
-            : this(hostName, urlPaths)
-        {
-            this.Parametres = new List<UrlElement>();
-            for (int i = 0; i < parametres.Length - 1; i++)
-                this.Parametres.Add(new UrlElement(parametres[i], parametres[i + 1]));
-        }
-
         #endregion
 
         #region Public Api

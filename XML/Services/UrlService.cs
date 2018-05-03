@@ -10,175 +10,99 @@ using System.Configuration;
 using XML.Entity;
 using XML.Enum;
 using XML.Interfaces;
+using System.Collections;
 
 namespace XML.Services
 {
     /// <summary>
     /// Repository for read from txt or xml file and write in xml file
     /// </summary>
-    public class UrlService : IUrlService<UrlAddress>
+    public class UrlService : IService<UrlAddress>, IEnumerable<UrlAddress>
     {
-        private const string SCHEME = "https://";
+        private ILogger logger;
 
         private XmlSerializer serializer = new XmlSerializer(typeof(List<UrlAddress>));
 
-        private List<UrlAddress> urlAddresses = new List<UrlAddress>();
+        private List<UrlAddress> collection = new List<UrlAddress>();
 
-        private string pathSourceFile;
+        private string pathSourceFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            ConfigurationManager.AppSettings["fileSource"]);
 
-        private string pathXmlFile;
-
-        private ILogger logger;
+        private string pathXmlFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            ConfigurationManager.AppSettings["fileXml"]);
 
         public UrlService(ILogger logger)
         {
             this.logger = logger;
-
-            this.pathSourceFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["fileSource"]);
-
-            this.pathXmlFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["fileXml"]);
         }
-
-        public List<UrlAddress> UrlAddresses => urlAddresses;
 
         /// <summary>
         /// Get IEnumerable instance typeof UrlAddress from text or xml file
         /// </summary>
-        /// <param name="type">type read: from txt or xml file</param>
-        /// <returns>IEnumerable instance typeof UrlAddress</returns>
-        public void Read(TypeRead type)
+        /// <param name="parser">object for parse string in instance typeof(T)</param>
+        public void ReadTxt(IParser<UrlAddress> parser)
         {
-            switch (type)
+            using (var fileStream = new FileStream(pathSourceFile, FileMode.Open, FileAccess.Read))
             {
-                case TypeRead.Text:
+                using (var stream = new StreamReader(fileStream, Encoding.Default))
                 {
-                    using (var fileStream = new FileStream(pathSourceFile, FileMode.Open, FileAccess.Read))
+                    string helper = String.Empty;
+
+                    while ((helper = stream.ReadLine()) != null)
                     {
-                        using (var stream = new StreamReader(fileStream, Encoding.Default))
+                        var result = parser.IsVerify(helper);
+
+                        if (result.Item1 == null)
                         {
-                            string helper = String.Empty;
+                            logger.Write(result.Item2);
 
-                            while ((helper = stream.ReadLine()) != null)
-                            {
-                                var resultVerify = Verify(helper);
-
-                                if (!resultVerify.Item1)
-                                {
-                                    logger.Write(resultVerify.Item4);
-
-                                    continue;
-                                }
-
-                                UrlAddress urlAddress = null;
-
-                                if (resultVerify.Item2.Length == 1 && resultVerify.Item3 == null)
-                                {
-                                    urlAddress = new UrlAddress(resultVerify.Item2[0]);
-                                }
-                                else if (resultVerify.Item2.Length > 1 && resultVerify.Item3 == null)
-                                {
-                                    var helperArray = new string[resultVerify.Item2.Length - 1];
-
-                                    Array.Copy(resultVerify.Item2, 1, helperArray, 0, resultVerify.Item2.Length - 1);
-
-                                    urlAddress = new UrlAddress(resultVerify.Item2[0], helperArray);
-                                }
-                                else
-                                {
-                                    var helperArray = new string[resultVerify.Item2.Length - 1];
-
-                                    Array.Copy(resultVerify.Item2, 1, helperArray, 0, resultVerify.Item2.Length - 1);
-
-                                    urlAddress = new UrlAddress(resultVerify.Item2[0], helperArray, resultVerify.Item3);
-                                }
-
-                                urlAddresses.Add(urlAddress);
-                            }
+                            continue;
                         }
+
+                        collection.Add(result.Item1);
                     }
-                    break;
                 }
-                case TypeRead.Xml:
-                {
-                    using (var fileStream = new FileStream(pathXmlFile, FileMode.Open, FileAccess.Write))
-                    {
-                        urlAddresses = (List<UrlAddress>)serializer.Deserialize(fileStream);
-                    }
-                    break;
-                }
-                default:
-                    throw new ArgumentOutOfRangeException($"Unknown {type}");
             }
         }
 
         /// <summary>
-        /// Write IEnumerable instance typeof UrlAddress in xml file
+        /// Read from Xml file
         /// </summary>
-        public void Write()
+        public void ReadXml()
+        {
+            using (var fileStream = new FileStream(pathXmlFile, FileMode.Open, FileAccess.Read))
+            {
+                collection = (List<UrlAddress>)serializer.Deserialize(fileStream);
+            }
+        }
+
+        /// <summary>
+        /// Write in to XmlFile
+        /// </summary>
+        public void WriteXml()
         {
             using (var fileStream = new FileStream(pathXmlFile, FileMode.Create, FileAccess.Write))
             {
-                serializer.Serialize(fileStream, urlAddresses);
+                serializer.Serialize(fileStream, collection);
             }
         }
 
         /// <summary>
-        /// Method for check validate input string
+        /// Get enumerator on collection list
         /// </summary>
-        /// <param name="input">input string</param>
-        /// <returns>true if string is valid, 
-        /// array host and url params,
-        /// array params or null if they absent,
-        /// message result verify</returns>
-        private (bool, string[], string[], string) Verify(string input)
+        /// <returns></returns>
+        public IEnumerator<UrlAddress> GetEnumerator()
         {
-            if(String.IsNullOrWhiteSpace(input))
-                return (false, null, null, $"{input} (null or whiteSpace, time: {DateTime.Now})");
+            return this.collection.GetEnumerator();
+        }
 
-            var indexScheme = input.IndexOf(SCHEME, StringComparison.CurrentCulture);
-
-            if (indexScheme != 0)
-                return (false, null, null, $"{input} (part scheme is not valid, time: {DateTime.Now})");
-
-            if (input.Length <= SCHEME.Length)
-                return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
-
-            var index = input.IndexOf('?');
-
-            if (index != -1)
-            {
-                var parametrs = input.Substring(index + 1).Split(new [] { '=', ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (!parametrs.Any())
-                    return (false, null, null, $"{input} (part <parameters> exist but not valid, time: {DateTime.Now})");
-
-                if (parametrs.Length % 2 != 0)
-                    return (false, null, null, $"{input} (part <parameters> exist but not valid, time: {DateTime.Now})");
-
-                var hostAndUrlPath = input.Substring(SCHEME.Length, index - SCHEME.Length)
-                        .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (!hostAndUrlPath.Any())
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
-
-                if (hostAndUrlPath[0].IndexOf('.') == -1)
-                    return (false, null, null, $"{input} (part <host>is not valid, time: {DateTime.Now})");
-
-                return (true, hostAndUrlPath, parametrs, $"Input string is valid, time: {DateTime.Now}");
-            }
-            else
-            {
-                var hostAndUrlPath = input.Substring(SCHEME.Length)
-                        .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (!hostAndUrlPath.Any())
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
-
-                if (hostAndUrlPath[0].IndexOf('.') == -1)
-                    return (false, null, null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
-
-                return (true, hostAndUrlPath, null, $"Input string is valid without params, time: {DateTime.Now}");
-            }
+        /// <summary>
+        /// Explicit reliaze interface IEnumerable
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

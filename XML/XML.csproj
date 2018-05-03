@@ -45,10 +45,12 @@
     <Compile Include="Entity\UrlSegment.cs" />
     <Compile Include="Entity\UrlAddress.cs" />
     <Compile Include="Enum\TypeRead.cs" />
-    <Compile Include="Interfaces\IUrlService.cs" />
+    <Compile Include="Interfaces\IService.cs" />
     <Compile Include="Interfaces\ILogger.cs" />
+    <Compile Include="Interfaces\IParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\Logger.cs" />
+    <Compile Include="Services\UrlAddressParser.cs" />
     <Compile Include="Services\UrlService.cs" />
   </ItemGroup>
   <ItemGroup>
