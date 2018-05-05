@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using LabExam.Entity;
 
 namespace LabExam.Entity
@@ -13,6 +14,19 @@ namespace LabExam.Entity
             this.Name = name;
 
             this.Model = model;
+        }
+
+        /// <summary>
+        /// Method for all inheritor
+        /// </summary>
+        /// <param name="stream">stream for print</param>
+        protected override void CurrentPrint(Stream stream)
+        {
+            for (int i = 0; i < stream.Length; i++)
+            {
+                // simulate printing
+                Console.WriteLine(stream.ReadByte());
+            }
         }
 
         /// <summary>

@@ -36,31 +36,35 @@ namespace LabExam.Entity
             protected set => model = value;
         }
 
-        public event EventHandler<InfoPrintEventArgs> PrintEvent = delegate { };
+        public event EventHandler<InfoPrintEventArgs> PrintEvent;
 
         /// <summary>
         /// Method for call event about start or end print
         /// </summary>
-        public void OnPrint(string message)
+        protected virtual void OnPrint(InfoPrintEventArgs e)
         {
-            PrintEvent(this, new InfoPrintEventArgs(this.Name, this.Model, message));
+            PrintEvent?.Invoke(this, e);
         }
 
         /// <summary>
-        /// Method for all inheritor
+        /// Method for print
         /// </summary>
-        /// <param name="fileStream"></param>
-        public void Print(FileStream fileStream)
+        /// <param name="stream"></param>
+        public void Print(Stream stream)
         {
-            OnPrint("Print start");
+            if(stream == null)
+                throw new ArgumentNullException($"Argument {nameof(stream)} is null");
 
-            for (int i = 0; i < fileStream.Length; i++)
-            {
-                // simulate printing
-                Console.WriteLine(fileStream.ReadByte());
-            }
+            OnPrint(new InfoPrintEventArgs(this.Name, this.Model, "Print start"));
 
-            OnPrint("Print end");
+            CurrentPrint(stream);
+
+            OnPrint(new InfoPrintEventArgs(this.Name, this.Model, "Print end"));
         }
+
+        /// <summary>
+        /// Abstract method for override in inheritance classes
+        /// </summary>
+        protected abstract void CurrentPrint(Stream stream);
     }
 }

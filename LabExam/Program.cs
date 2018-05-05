@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using LabExam.Entity;
+using LabExam.Exceptions;
 using LabExam.Interfaces;
 using LabExam.Service;
 using Ninject;
@@ -15,16 +16,11 @@ namespace LabExam
 {
     class Program
     {
-        private static readonly IPrinterManager manager;
-
-        private static readonly int index;
+        private static readonly PrintManagerService manager;
 
         static Program()
         {
-            var resolver = new StandardKernel();
-            resolver.ConfigurateResolver();
-            manager = resolver.Get<IPrinterManager>();
-            index = manager.GetAll().Count;
+            manager = PrintManagerService.Instance;
         }
 
         [STAThread]
@@ -33,6 +29,9 @@ namespace LabExam
             GetMenu();
         }
 
+        /// <summary>
+        /// Get menu and check choose user
+        /// </summary>
         private static void GetMenu()
         {
             Console.WriteLine("Select your choice:");
@@ -42,47 +41,85 @@ namespace LabExam
             {
                 Console.WriteLine($"{index++}.Print in {item.Name} - {item.Model}");
             }
+            Console.WriteLine("0 - end program");
 
             var key = Console.ReadKey();
 
             if (key.Key == ConsoleKey.D1)
             {
+                Console.WriteLine();
                 CreatePrinter();
             }
-
-            if (key.Key >= ConsoleKey.D2 || key.Key <= ConsoleKey.D2 + index)
+            else if (key.Key >= ConsoleKey.D2 && key.Key <= ConsoleKey.D2 + index)
             {
-                Print(manager.GetAll()[(int)key.Key - (int)ConsoleKey.D2]);
+                try
+                {
+                    Print(manager[(int)key.Key - (int)ConsoleKey.D2]);
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    Console.WriteLine(e.Message);
+                    GetMenu();
+                }
             }
-
-            while (true)
+            else if (key.Key == ConsoleKey.D0)
             {
-                // waiting
+                Console.WriteLine();
+                Console.WriteLine($"Application is over");
+            }
+            else
+            {
+                Console.WriteLine();
+                Console.WriteLine($"Undefined key try again");
+                GetMenu();
             }
         }
 
+        /// <summary>
+        /// Print data in printer
+        /// </summary>
+        /// <param name="printer"></param>
         private static void Print(BasePrinter printer)
         {
-            using (var dialog = new OpenFileDialog())
+            try
             {
-                dialog.ShowDialog();
-                using (var fileStream = File.OpenRead(dialog.FileName))
+                using (var dialog = new OpenFileDialog())
                 {
-                    printer.Print(fileStream);
+                    dialog.ShowDialog();
+                    using (var fileStream = File.OpenRead(dialog.FileName))
+                    {
+                        printer.Print(fileStream);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                GetMenu();
             }
 
             GetMenu();
         }
 
+        /// <summary>
+        /// Create new printer
+        /// </summary>
         private static void CreatePrinter()
         {
             Console.WriteLine("Enter printer name");
             var name = Console.ReadLine();
             Console.WriteLine("Enter printer model");
             var model = Console.ReadLine();
-            
-            manager.Add(name, model);
+
+            try
+            {
+                manager.Add(name, model);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                GetMenu();
+            }
 
             GetMenu();
         }
