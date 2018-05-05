@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace XML.Interfaces
 {
     /// <summary>
-    /// Interface for parser
+    /// Interface for XmlProvider
     /// </summary>
-    public interface IParser<in TSource, out TResult>
+    public interface IXmlProvider<TResult>
     {
-        IEnumerable<TResult> Map(IEnumerable<TSource> sources);
+        void Write(IEnumerable<TResult> results);
     }
 }

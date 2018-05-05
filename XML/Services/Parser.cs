@@ -2,25 +2,49 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using XML.Entity;
 using XML.Interfaces;
 
 namespace XML.Services
 {
-    public class UrlAddressParser : IParser<UrlAddress>
+    public class Parser : IParser<string, UrlAddress>
     {
         private const string SCHEME = "https://";
+
+        private ILogger logger;
+
+        public Parser(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         /// <summary>   
         /// Method for check validate input string
         /// </summary>
-        /// <param name="input">input string</param>
-        /// <returns>true if string is valid, 
-        /// array host,url,params,
-        /// array params or null if they absent,
-        /// message result verify</returns>
-        public (UrlAddress , string) IsVerify(string input)
+        /// <param name="input">IEnumerable typeof string</param>
+        /// <returns>IEnumerable<UrlAddress>type</UrlAddress></returns>
+        public IEnumerable<UrlAddress> Map(IEnumerable<string> input)
+        {
+            foreach (var item in input)
+            {
+                var result = VerifyAndParse(item);
+
+                if (result.Item1 != null)
+                    yield return result.Item1;
+                else    
+                    logger.Write(result.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Method for parse and verify input string
+        /// </summary>
+        /// <param name="input">string</param>
+        /// <returns>tuple where Item1 - instance UrlAddress, 
+        /// Item2 - message about result operation</returns>
+        private (UrlAddress, string) VerifyAndParse(string input)
         {
             if (String.IsNullOrWhiteSpace(input))
                 return (null, $"{input} (null or whiteSpace, time: {DateTime.Now})");
@@ -40,7 +64,7 @@ namespace XML.Services
             if (index != -1)
             {
                 var hostAndUrlPath = input.Substring(SCHEME.Length, index - SCHEME.Length)
-                    .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!hostAndUrlPath.Any())
                     return (null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");
@@ -48,7 +72,7 @@ namespace XML.Services
                 if (hostAndUrlPath[0].IndexOf('.') == -1)
                     return (null, $"{input} (part <host>is not valid, time: {DateTime.Now})");
 
-                var parametrs = input.Substring(index + 1).Split(new[] { '=', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                var parametrs = input.Substring(index + 1).Split(new[] {'=', ','}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!parametrs.Any())
                     return (null, $"{input} (part <parameters> exist but not valid, time: {DateTime.Now})");
@@ -60,7 +84,7 @@ namespace XML.Services
 
                 address.Parametres = new List<UrlElement>();
 
-                for(int i = 0; i < parametrs.Length - 1; i++)
+                for (int i = 0; i < parametrs.Length - 1; i++)
                     address.Parametres.Add(new UrlElement(parametrs[i], parametrs[i + 1]));
 
                 if (hostAndUrlPath.Length == 1)
@@ -76,7 +100,7 @@ namespace XML.Services
             else
             {
                 var hostAndUrlPath = input.Substring(SCHEME.Length)
-                        .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!hostAndUrlPath.Any())
                     return (null, $"{input} (part <host>/<URL-path> is absent, time: {DateTime.Now})");

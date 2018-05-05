@@ -18,7 +18,7 @@ namespace XML.Services
 
         public Logger()
         {
-            this.pathLogFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["logFile"]);
+            this.pathLogFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["log"]);
         }
 
         public void Write(string message)
