@@ -36,18 +36,17 @@ namespace XML.Services
             this.storage = storage;
         }
 
-        public void SaveInStorage()
+        /// <summary>
+        /// Parsing and save in storage objects type TResult
+        /// </summary>
+        /// <returns>count objects save in storage</returns>
+        public int SaveInStorage()
         {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["source"]);
+            var strings = provider.GetData();
 
-            if (!File.Exists(path))
-                throw new FileNotFoundException($"File path {path} is not exist");
+            var addresses = parser.Map(strings, new Logger());
 
-            var strings = provider.GetData(path);
-
-            var addresses = parser.Map(strings);
-
-            storage.Write(addresses);
+            return storage.Write(addresses);
         }
     }
 }

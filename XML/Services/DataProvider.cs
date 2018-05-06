@@ -15,8 +15,14 @@ namespace XML.Services
     /// </summary>
     public class DataProvider : IDataProvider<string>
     {
-        public IEnumerable<string> GetData(string path)
+        public IEnumerable<string> GetData()
         {
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                ConfigurationManager.AppSettings["source"]);
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException($"File path {path} is not exist");
+
             using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 using (var stream = new StreamReader(fileStream, Encoding.Default))

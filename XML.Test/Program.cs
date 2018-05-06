@@ -15,7 +15,7 @@ namespace XML.Test
         static void Main(string[] args)
         {
             var service = new Service<string,UrlAddress>(new DataProvider(),
-                new Parser(new Logger()), new XmlProvider());
+                new Parser(), new XmlProvider());
 
             service.SaveInStorage();
         }

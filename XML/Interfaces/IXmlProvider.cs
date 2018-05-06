@@ -11,6 +11,6 @@ namespace XML.Interfaces
     /// </summary>
     public interface IXmlProvider<TResult>
     {
-        void Write(IEnumerable<TResult> results);
+        int Write(IEnumerable<TResult> results);
     }
 }

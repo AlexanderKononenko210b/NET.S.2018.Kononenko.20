@@ -11,6 +11,6 @@ namespace XML.Interfaces
     /// </summary>
     public interface IDataProvider<out TSourse>
     {
-        IEnumerable<TSourse> GetData(string path);
+        IEnumerable<TSourse> GetData();
     }
 }

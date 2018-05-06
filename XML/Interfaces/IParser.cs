@@ -12,6 +12,6 @@ namespace XML.Interfaces
     /// </summary>
     public interface IParser<in TSource, out TResult>
     {
-        IEnumerable<TResult> Map(IEnumerable<TSource> sources);
+        IEnumerable<TResult> Map(IEnumerable<TSource> sources, ILogger logger);
     }
 }

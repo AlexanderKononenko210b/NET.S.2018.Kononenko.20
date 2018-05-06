@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,11 +18,14 @@ namespace XML.Services
     /// </summary>
     public class XmlProvider : IXmlProvider<UrlAddress>
     {
-        public void Write(IEnumerable<UrlAddress> results)
+        public int Write(IEnumerable<UrlAddress> results)
         {
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                ConfigurationManager.AppSettings["xml"]);
+
             XDocument document = new XDocument(
-                new XDeclaration("1.0", "utf-16", "yes"),
-                new XElement("addresses",
+                new XDeclaration("1.0", "utf-16", null),
+                new XElement("addresses", 
                     from address in results
                     select
                     new XElement("address",
@@ -37,7 +41,9 @@ namespace XML.Services
                             new XAttribute("key", parameter.Key),
                             new XAttribute("value", parameter.Value)))));
 
-           document.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["xml"]));
+            document.Save(path);
+
+            return document.Elements("address").Count();
         }
     }
 }

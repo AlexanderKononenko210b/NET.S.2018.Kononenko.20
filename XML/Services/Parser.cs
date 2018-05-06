@@ -9,24 +9,26 @@ using XML.Interfaces;
 
 namespace XML.Services
 {
+    /// <summary>
+    /// Parser from string to UrlAddress
+    /// </summary>
     public class Parser : IParser<string, UrlAddress>
     {
         private const string SCHEME = "https://";
-
-        private ILogger logger;
-
-        public Parser(ILogger logger)
-        {
-            this.logger = logger;
-        }
 
         /// <summary>   
         /// Method for check validate input string
         /// </summary>
         /// <param name="input">IEnumerable typeof string</param>
         /// <returns>IEnumerable<UrlAddress>type</UrlAddress></returns>
-        public IEnumerable<UrlAddress> Map(IEnumerable<string> input)
+        public IEnumerable<UrlAddress> Map(IEnumerable<string> input, ILogger logger)
         {
+            if(input == null)
+                throw new ArgumentNullException($"Argument {nameof(input)} is null");
+
+            if (logger == null)
+                throw new ArgumentNullException($"Argument {nameof(logger)} is null");
+
             foreach (var item in input)
             {
                 var result = VerifyAndParse(item);

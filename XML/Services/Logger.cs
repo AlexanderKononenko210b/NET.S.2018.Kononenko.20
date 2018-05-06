@@ -14,16 +14,15 @@ namespace XML.Services
     /// </summary>
     public class Logger : ILogger
     {
-        private string pathLogFile;
-
-        public Logger()
-        {
-            this.pathLogFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["log"]);
-        }
-
         public void Write(string message)
         {
-            using (var fileStream = new FileStream(pathLogFile, FileMode.Append, FileAccess.Write))
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                ConfigurationManager.AppSettings["log"]);
+
+            if (!File.Exists(path))
+                File.Create(path);
+
+            using (var fileStream = new FileStream(path, FileMode.Append, FileAccess.Write))
             {
                 using (StreamWriter strWriter = new StreamWriter(fileStream, Encoding.Default))
                 {
