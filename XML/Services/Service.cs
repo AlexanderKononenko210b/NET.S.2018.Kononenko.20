@@ -16,7 +16,7 @@ using System.Xml.Linq;
 namespace XML.Services
 {
     /// <summary>
-    /// Repository for read from txt and write in xml file
+    /// Service for read from txt and write in xml file
     /// </summary>
     public class Service<TSource, TResult>
     {
